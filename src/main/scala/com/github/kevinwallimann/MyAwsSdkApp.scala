@@ -25,27 +25,50 @@ object MyAwsSdkApp extends App {
 
   private case class CmdConfig(
     demoApp: String = "",
-    s3DemoAppConfig: Option[S3DemoAppConfig] = None
+    s3DemoAppConfig: S3DemoAppConfig = S3DemoAppConfig(),
+    emrDemoAppConfig: EmrDemoAppConfig = EmrDemoAppConfig(),
+    useV1: Boolean = true
   )
 
   case class S3DemoAppConfig(
-    bucket: String
+    bucket: String = ""
   )
 
+  case class EmrDemoAppConfig(
+    jobFlowId: String = "",
+    mainClass: String = "",
+    jar: String = "",
+    stepName: String = ""
+  )
+  
   private class CmdParser(programName: String) extends OptionParser[CmdConfig](programName) {
     head("Usage: java -jar awssdkapp-0.1.0-SNAPSHOT.jar (s3|emr)")
+    opt[Boolean]("use-v2").optional().action((_, config) => {
+      config.copy(useV1 = false)
+    })
     cmd("s3")
       .action((_, conf) => conf.copy(demoApp = "s3"))
       .children(
         opt[String]('b', "bucket").required().action((value, config) => {
-          config.copy(s3DemoAppConfig = config.s3DemoAppConfig match {
-            case Some(s3DemoAppConfigValue) => Some(s3DemoAppConfigValue.copy(bucket = value))
-            case None => Some(S3DemoAppConfig(bucket = value))
-          })
-        })
+          config.copy(s3DemoAppConfig = config.s3DemoAppConfig.copy(bucket = value))
+        }),
       )
     cmd("emr")
       .action((_, conf) => conf.copy(demoApp = "emr"))
+      .children(
+        opt[String]('j', "job-flow-id").required().action((value, config) => {
+          config.copy(emrDemoAppConfig = config.emrDemoAppConfig.copy(jobFlowId = value))
+        }),
+        opt[String]('m', "main-class").required().action((value, config) => {
+          config.copy(emrDemoAppConfig = config.emrDemoAppConfig.copy(mainClass = value))
+        }),
+        opt[String](name = "jar").required().action((value, config) => {
+          config.copy(emrDemoAppConfig = config.emrDemoAppConfig.copy(jar = value))
+        }),
+        opt[String](name = "step-name").required().action((value, config) => {
+          config.copy(emrDemoAppConfig = config.emrDemoAppConfig.copy(stepName = value))
+        })
+      )
   }
 
   private def getCmdLineArguments(args: Array[String]): CmdConfig = {
@@ -64,8 +87,10 @@ object MyAwsSdkApp extends App {
 
     val cmd: CmdConfig = getCmdLineArguments(args)
     cmd.demoApp match {
-      case "s3" => S3DemoApp.execute(cmd.s3DemoAppConfig.get)
-      case "emr" =>
+      case "s3" if cmd.useV1 => S3DemoAppV1.execute(cmd.s3DemoAppConfig)
+      case "s3" if !cmd.useV1 => S3DemoAppV2.execute(cmd.s3DemoAppConfig)
+      case "emr" if cmd.useV1 => EmrDemoAppV1.execute(cmd.emrDemoAppConfig)
+      case "emr" if !cmd.useV1 => EmrDemoAppV2.execute(cmd.emrDemoAppConfig)
       case _ => logger.error("Unknown demo app")
     }
   }

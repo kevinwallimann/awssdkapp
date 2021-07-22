@@ -29,7 +29,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- Versions -->
-        <awssdk.bom.version>2.17.1</awssdk.bom.version>
+        <awssdk.v2.bom.version>2.17.1</awssdk.v2.bom.version>
+        <awssdk.v1.bom.version>1.12.29</awssdk.v1.bom.version>
         <scopt.version>4.0.1</scopt.version>
         <logback.version>1.2.4</logback.version>
         <!-- Build -->
@@ -51,6 +52,14 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>emr</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-emr</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.scopt</groupId>
@@ -77,13 +86,19 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
-                <version>${awssdk.bom.version}</version>
+                <version>${awssdk.v2.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-bom</artifactId>
+                <version>${awssdk.v1.bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>

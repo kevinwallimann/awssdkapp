@@ -5,7 +5,7 @@ import com.github.kevinwallimann.MyAwsSdkApp.S3DemoAppConfig
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest
 
-object S3DemoApp {
+object S3DemoAppV2 {
   def execute(config: S3DemoAppConfig): Unit = {
     val s3Client: S3Client = S3Client.builder().build()
     val listObjectsRequest = ListObjectsRequest.builder().bucket(config.bucket).build()
